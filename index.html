@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Études">
+    <title>Suivi Études</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            padding: 12px;
+            overflow-x: hidden;
+        }
+
+        .container { max-width: 480px; margin: 0 auto; width: 100%; }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            padding: 20px;
+            margin-bottom: 12px;
+        }
+
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        h1 { font-size: 24px; color: #1f2937; font-weight: 700; }
+        h2 { font-size: 20px; color: #1f2937; font-weight: 700; margin-bottom: 16px; }
+        h3 { font-size: 16px; color: #374151; font-weight: 600; margin-bottom: 10px; }
+
+        .points-badge {
+            background: #fef3c7;
+            padding: 6px 14px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .points-badge span { font-weight: 700; color: #d97706; font-size: 16px; }
+
+        /* Grille 3 boutons */
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .btn {
+            padding: 12px 6px;
+            border: none;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.12);
+            color: white;
+        }
+        .btn:active { opacity: 0.8; transform: scale(0.97); }
+        .btn-green  { background: #10b981; }
+        .btn-amber  { background: #f59e0b; }
+        .btn-blue   { background: #3b82f6; }
+        .btn-indigo { background: #6366f1; }
+        .btn-red    { background: #ef4444; }
+        .btn-gray   { background: #6b7280; }
+
+        .btn-full {
+            width: 100%;
+            padding: 13px;
+            margin-top: 10px;
+            flex-direction: row;
+            justify-content: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+
+        .btn-icon { font-size: 26px; line-height: 1; }
+
+        /* Inputs */
+        input[type="text"], input[type="number"] {
+            padding: 11px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+        input:focus { outline: none; border-color: #6366f1; }
+
+        .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .input-row input[type="text"]   { flex: 2; }
+        .input-row input[type="number"] { flex: 1; }
+
+        /* Matières */
+        .subject-item { background: #f9fafb; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+        .subject-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .subject-name { font-weight: 700; color: #1f2937; font-size: 15px; }
+
+        .subject-card { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f9fafb; border-radius: 10px; margin-bottom: 8px; }
+        .subject-card-info { display: flex; align-items: center; gap: 10px; }
+        .subject-card-sub { font-size: 12px; color: #6b7280; }
+        .subject-card-points { font-weight: 700; color: #6366f1; font-size: 17px; text-align: right; }
+        .subject-card-pts-label { font-size: 11px; color: #6b7280; }
+
+        /* Exercices */
+        .exercise-item { background: white; padding: 10px 12px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .exercise-pts { font-weight: 600; color: #6366f1; font-size: 13px; }
+
+        .btn-icon-sm { background: none; border: none; cursor: pointer; padding: 4px; font-size: 17px; line-height: 1; }
+
+        /* Session */
+        .subject-section { border: 2px solid #e5e7eb; border-radius: 12px; padding: 14px; margin-bottom: 12px; }
+        .subject-section-title { font-weight: 700; color: #1f2937; margin-bottom: 10px; font-size: 15px; }
+
+        .ex-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .ex-row input[type="number"] { width: 54px; text-align: center; font-weight: 700; padding: 10px 6px; }
+        .ex-btn {
+            flex: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 11px 14px;
+            cursor: pointer;
+            transition: background 0.15s;
+            font-size: 14px;
+        }
+        .ex-btn:active { background: #eef2ff; border-color: #6366f1; }
+
+        /* Session recap */
+        .selected-item { background: #f9fafb; padding: 11px 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .selected-name { font-weight: 600; color: #1f2937; font-size: 14px; }
+        .selected-subject { font-size: 12px; color: #6b7280; }
+        .selected-count { display: flex; align-items: center; gap: 6px; }
+        .selected-count input { width: 48px; text-align: center; font-weight: 700; padding: 6px 4px; font-size: 14px; }
+
+        .total-box { background: #eef2ff; padding: 14px 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; margin: 12px 0; }
+        .total-label { font-weight: 600; color: #4338ca; }
+        .total-value { font-size: 26px; font-weight: 700; color: #6366f1; }
+
+        /* Historique */
+        .session-item { background: #f9fafb; padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+        .session-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .session-date { font-size: 13px; color: #6b7280; }
+        .session-total { font-weight: 700; color: #6366f1; }
+        .session-line { font-size: 13px; color: #374151; display: flex; justify-content: space-between; margin-bottom: 3px; }
+        .session-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e5e7eb; }
+        .session-actions .btn { flex: 1; padding: 9px 6px; font-size: 13px; }
+
+        .edit-mode { background: #fef3c7 !important; border: 2px solid #f59e0b; }
+        .edit-hint { font-size: 12px; color: #92400e; font-weight: 600; margin-bottom: 8px; }
+        .edit-item { display: flex; align-items: center; gap: 8px; padding: 8px; background: white; border-radius: 6px; margin-bottom: 6px; }
+        .edit-item-info { flex: 1; font-size: 13px; color: #374151; }
+        .edit-item-info small { color: #6b7280; display: block; }
+        .edit-item input { width: 56px; text-align: center; font-weight: 700; padding: 6px; }
+
+        /* Objectifs */
+        .goal-item { background: #f9fafb; border-radius: 12px; padding: 14px; margin-bottom: 10px; }
+        .goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+        .goal-title { font-weight: 600; color: #1f2937; font-size: 14px; }
+        .goal-badge { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 12px; }
+        .goal-badge.done { background: #d1fae5; color: #065f46; }
+        .goal-badge.wip  { background: #fef3c7; color: #92400e; }
+
+        .progress-bar { background: #e5e7eb; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+        .progress-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; background: linear-gradient(90deg, #10b981, #34d399); }
+        .progress-fill.done { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+
+        .goal-target-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+        .goal-target-row input { width: 70px; padding: 5px 8px; font-size: 13px; }
+        .goal-target-row span { font-size: 12px; color: #6b7280; }
+
+        .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
+        .day-btn { padding: 7px 2px; border: 2px solid #e5e7eb; background: white; border-radius: 8px; font-size: 10px; cursor: pointer; text-align: center; font-weight: 600; transition: all 0.15s; }
+        .day-btn.on  { background: #6366f1; color: white; border-color: #6366f1; }
+
+        .day-check { display: flex; align-items: center; gap: 10px; padding: 10px; background: white; border-radius: 8px; margin: 5px 0; cursor: pointer; transition: background 0.15s; }
+        .day-check:active { background: #eef2ff; }
+        .day-check.done { background: #d1fae5; }
+        .day-check input[type="checkbox"] { width: 20px; height: 20px; accent-color: #10b981; cursor: pointer; }
+        .day-check-label { font-weight: 600; color: #374151; font-size: 13px; }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 100; }
+        .modal { background: white; border-radius: 16px; padding: 22px; width: 100%; max-width: 380px; max-height: 85vh; overflow-y: auto; }
+        .modal h3 { margin-bottom: 16px; font-size: 18px; }
+        .form-group { margin-bottom: 14px; }
+        .form-label { display: block; font-weight: 600; color: #374151; margin-bottom: 6px; font-size: 13px; }
+
+        .close-btn { background: none; border: none; color: #6b7280; font-size: 22px; cursor: pointer; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; }
+
+        /* Empty state */
+        .empty { text-align: center; padding: 28px 16px; color: #9ca3af; font-size: 14px; }
+
+        /* Link btn */
+        .link-btn { background: none; border: none; color: #6366f1; font-weight: 600; cursor: pointer; font-size: 14px; padding: 0; }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #1f2937; color: white; padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 600; z-index: 200; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+        .toast.show { opacity: 1; }
+
+        /* Responsive */
+        @media (max-width: 380px) {
+            body { padding: 8px; }
+            .card { padding: 16px; }
+            h1 { font-size: 21px; }
+            .btn { font-size: 11px; padding: 10px 4px; }
+            .btn-icon { font-size: 22px; }
+            .days-grid { gap: 3px; }
+            .day-btn { font-size: 9px; padding: 6px 1px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container" id="app"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── IndexedDB ────────────────────────────────────────────────────────────────
+const DB_NAME = 'suivi-etudes';
+const DB_VERSION = 1;
+let db = null;
+
+function openDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = e => {
+            const d = e.target.result;
+            if (!d.objectStoreNames.contains('data')) {
+                d.createObjectStore('data');
+            }
+        };
+        req.onsuccess  = e => { db = e.target.result; resolve(db); };
+        req.onerror    = e => reject(e.target.error);
+    });
+}
+
+function dbGet(key) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('data', 'readonly');
+        const req = tx.objectStore('data').get(key);
+        req.onsuccess = e => resolve(e.target.result);
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+
+function dbSet(key, value) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction('data', 'readwrite');
+        const req = tx.objectStore('data').put(value, key);
+        req.onsuccess = () => resolve();
+        req.onerror   = e => reject(e.target.error);
+    });
+}
+
+// ─── État ─────────────────────────────────────────────────────────────────────
+let S = {
+    subjects: [],
+    sessions: [],
+    weeklyGoals: { automatic: {}, manual: [] },
+    // UI state
+    view: 'home',
+    sessionExercises: [],        // [{subjectId, id, name, points}]
+    editingSession: null,
+    showGoalModal: false,
+    newGoal: { title: '', days: [] },
+    newSubject: '',
+    newExercise: { name: '', points: '' },
+    selectedSubject: null,
+};
+
+// ─── Persistence ──────────────────────────────────────────────────────────────
+async function loadAll() {
+    S.subjects    = (await dbGet('subjects'))     || [];
+    S.sessions    = (await dbGet('sessions'))     || [];
+    S.weeklyGoals = (await dbGet('weeklyGoals'))  || { automatic: {}, manual: [] };
+    updateAutoGoals();
+}
+
+const save = {
+    subjects:    () => dbSet('subjects',    S.subjects),
+    sessions:    () => dbSet('sessions',    S.sessions),
+    weeklyGoals: () => dbSet('weeklyGoals', S.weeklyGoals),
+};
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const toast = msg => {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2200);
+};
+
+function weekStart(d = new Date()) {
+    const t = new Date(d);
+    const day = t.getDay();
+    t.setDate(t.getDate() - (day === 0 ? 6 : day - 1));
+    t.setHours(0, 0, 0, 0);
+    return t.getTime();
+}
+
+function weekEnd(d = new Date()) {
+    return weekStart(d) + 7 * 86400000 - 1;
+}
+
+function weekPts(subjectId) {
+    const ws = weekStart(), we = weekEnd();
+    return S.sessions
+        .filter(s => { const t = new Date(s.date).getTime(); return t >= ws && t <= we; })
+        .reduce((tot, s) =>
+            tot + s.exercises.filter(e => e.subjectId === subjectId)
+                             .reduce((a, e) => a + e.pointsPerExercise * e.count, 0)
+        , 0);
+}
+
+function subjectName(id) {
+    return (S.subjects.find(s => s.id === id) || {}).name || '?';
+}
+
+function totalPoints() {
+    return S.subjects.reduce((a, s) => a + s.totalPoints, 0);
+}
+
+function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('fr-FR', { day:'numeric', month:'long', hour:'2-digit', minute:'2-digit' });
+}
+
+const DAYS = ['lundi','mardi','mercredi','jeudi','vendredi','samedi','dimanche'];
+const DAY_SHORT = { lundi:'Lun', mardi:'Mar', mercredi:'Mer', jeudi:'Jeu', vendredi:'Ven', samedi:'Sam', dimanche:'Dim' };
+
+// ─── Objectifs auto ───────────────────────────────────────────────────────────
+function updateAutoGoals() {
+    const ws = weekStart();
+    const ag = S.weeklyGoals.automatic;
+
+    // Nouvelle semaine → réinitialiser les targets (mais garder les valeurs existantes)
+    if (ag.weekStart !== ws) {
+        const oldGoals = ag.subjectGoals || [];
+        ag.weekStart = ws;
+        ag.subjectGoals = S.subjects.map(sub => {
+            const old = oldGoals.find(g => g.subjectId === sub.id);
+            return { subjectId: sub.id, targetPoints: old ? old.targetPoints : 50, currentPoints: 0 };
+        });
+    } else {
+        // S'assurer que chaque matière a un objectif
+        if (!ag.subjectGoals) ag.subjectGoals = [];
+        S.subjects.forEach(sub => {
+            if (!ag.subjectGoals.find(g => g.subjectId === sub.id)) {
+                ag.subjectGoals.push({ subjectId: sub.id, targetPoints: 50, currentPoints: 0 });
+            }
+        });
+    }
+
+    // Toujours recalculer currentPoints depuis les sessions
+    ag.subjectGoals.forEach(g => { g.currentPoints = weekPts(g.subjectId); });
+    save.weeklyGoals();
+}
+
+// ─── Actions ──────────────────────────────────────────────────────────────────
+
+// ── Matières ──
+function addSubject() {
+    const name = document.getElementById('newSubjectInput')?.value.trim();
+    if (!name) return;
+    S.subjects.push({ id: Date.now(), name, exercises: [], totalPoints: 0 });
+    save.subjects();
+    updateAutoGoals();
+    S.newSubject = '';
+    render();
+    toast('Matière ajoutée ✓');
+}
+
+function delSubject(id) {
+    if (!confirm('Supprimer cette matière ? Ses exercices seront perdus.')) return;
+    S.subjects = S.subjects.filter(s => s.id !== id);
+    save.subjects();
+    updateAutoGoals();
+    render();
+}
+
+// ── Exercices ──
+function addExercise(subjectId) {
+    const nameEl   = document.getElementById('exName-' + subjectId);
+    const pointsEl = document.getElementById('exPts-'  + subjectId);
+    if (!nameEl || !pointsEl) return;
+    const name   = nameEl.value.trim();
+    const points = parseInt(pointsEl.value);
+    if (!name || !points || points < 1) { toast('Nom et points requis'); return; }
+
+    S.subjects = S.subjects.map(s => {
+        if (s.id === subjectId) {
+            s.exercises.push({ id: Date.now(), name, points });
+        }
+        return s;
+    });
+    save.subjects();
+    nameEl.value   = '';
+    pointsEl.value = '';
+    render();
+    toast('Exercice ajouté ✓');
+}
+
+function delExercise(subjectId, exId) {
+    S.subjects = S.subjects.map(s => {
+        if (s.id === subjectId) s.exercises = s.exercises.filter(e => e.id !== exId);
+        return s;
+    });
+    save.subjects();
+    render();
+}
+
+// ── Session en cours ──
+function sessionGroups() {
+    const map = {};
+    S.sessionExercises.forEach(ex => {
+        const k = `${ex.subjectId}-${ex.id}`;
+        if (!map[k]) map[k] = { subjectId: ex.subjectId, ex, count: 0 };
+        map[k].count++;
+    });
+    return Object.values(map);
+}
+
+function addToSession(subjectId, ex, qty) {
+    for (let i = 0; i < qty; i++) S.sessionExercises.push({ subjectId, ...ex });
+    render();
+}
+
+function changeGroupCount(subjectId, exId, newCount) {
+    const template = S.sessionExercises.find(e => e.subjectId === subjectId && e.id === exId);
+    if (!template) return;
+    S.sessionExercises = S.sessionExercises.filter(e => !(e.subjectId === subjectId && e.id === exId));
+    for (let i = 0; i < Math.max(0, newCount); i++) S.sessionExercises.push({ ...template });
+    render();
+}
+
+function removeGroup(subjectId, exId) {
+    S.sessionExercises = S.sessionExercises.filter(e => !(e.subjectId === subjectId && e.id === exId));
+    render();
+}
+
+function saveSession() {
+    const groups = sessionGroups();
+    if (!groups.length) return;
+
+    const exercises = groups.map(g => ({
+        subjectId: g.subjectId,
+        exerciseId: g.ex.id,
+        name: g.ex.name,
+        pointsPerExercise: g.ex.points,
+        count: g.count
+    }));
+
+    const totalPts = exercises.reduce((a, e) => a + e.pointsPerExercise * e.count, 0);
+
+    S.sessions.unshift({ id: Date.now(), date: new Date().toISOString(), exercises, totalPoints: totalPts });
+
+    S.subjects = S.subjects.map(sub => {
+        const pts = exercises.filter(e => e.subjectId === sub.id)
+                             .reduce((a, e) => a + e.pointsPerExercise * e.count, 0);
+        sub.totalPoints += pts;
+        return sub;
+    });
+
+    save.sessions();
+    save.subjects();
+    updateAutoGoals();
+
+    S.sessionExercises = [];
+    S.view = 'home';
+    render();
+    toast(`Session validée ! +${totalPts} pts 🎉`);
+}
+
+// ── Historique ──
+function delSession(id) {
+    if (!confirm('Supprimer cette session ?')) return;
+    const s = S.sessions.find(x => x.id === id);
+    if (!s) return;
+    S.subjects = S.subjects.map(sub => {
+        const pts = s.exercises.filter(e => e.subjectId === sub.id)
+                               .reduce((a, e) => a + e.pointsPerExercise * e.count, 0);
+        sub.totalPoints = Math.max(0, sub.totalPoints - pts);
+        return sub;
+    });
+    S.sessions = S.sessions.filter(x => x.id !== id);
+    save.sessions();
+    save.subjects();
+    updateAutoGoals();
+    render();
+    toast('Session supprimée');
+}
+
+function saveEditedSession(id) {
+    const idx = S.sessions.findIndex(s => s.id === id);
+    if (idx === -1) return;
+    const old = S.sessions[idx];
+
+    const exercises = old.exercises.map((ex, i) => {
+        const el = document.getElementById(`ec-${id}-${i}`);
+        const count = el ? Math.max(0, parseInt(el.value) || 0) : ex.count;
+        return { ...ex, count };
+    }).filter(ex => ex.count > 0);
+
+    const newTotal = exercises.reduce((a, e) => a + e.pointsPerExercise * e.count, 0);
+
+    // Appliquer le delta sur les matières
+    S.subjects = S.subjects.map(sub => {
+        const oldPts = old.exercises.filter(e => e.subjectId === sub.id)
+                                    .reduce((a, e) => a + e.pointsPerExercise * e.count, 0);
+        const newPts = exercises.filter(e => e.subjectId === sub.id)
+                                .reduce((a, e) => a + e.pointsPerExercise * e.count, 0);
+        sub.totalPoints = Math.max(0, sub.totalPoints + (newPts - oldPts));
+        return sub;
+    });
+
+    if (!exercises.length) {
+        S.sessions.splice(idx, 1);
+    } else {
+        S.sessions[idx] = { ...old, exercises, totalPoints: newTotal };
+    }
+
+    S.editingSession = null;
+    save.sessions();
+    save.subjects();
+    updateAutoGoals();
+    render();
+    toast('Session modifiée ✓');
+}
+
+// ── Objectifs ──
+function setGoalTarget(subjectId, val) {
+    const target = Math.max(1, parseInt(val) || 50);
+    const g = S.weeklyGoals.automatic.subjectGoals?.find(g => g.subjectId === subjectId);
+    if (g) { g.targetPoints = target; save.weeklyGoals(); }
+}
+
+function addManualGoal() {
+    const title = document.getElementById('goalTitle')?.value.trim();
+    if (!title || !S.newGoal.days.length) { toast('Titre et au moins un jour requis'); return; }
+    S.weeklyGoals.manual.push({ id: Date.now(), title, days: [...S.newGoal.days], completedDays: {} });
+    S.newGoal = { title: '', days: [] };
+    S.showGoalModal = false;
+    save.weeklyGoals();
+    render();
+}
+
+function delManualGoal(id) {
+    S.weeklyGoals.manual = S.weeklyGoals.manual.filter(g => g.id !== id);
+    save.weeklyGoals();
+    render();
+}
+
+function toggleDayDone(goalId, day) {
+    const ws = weekStart();
+    const key = `${ws}-${day}`;
+    const goal = S.weeklyGoals.manual.find(g => g.id === goalId);
+    if (!goal) return;
+    goal.completedDays[key] = !goal.completedDays[key];
+    save.weeklyGoals();
+    render();
+}
+
+function isDone(goal, day) {
+    return !!goal.completedDays[`${weekStart()}-${day}`];
+}
+
+function toggleDaySelect(day) {
+    const i = S.newGoal.days.indexOf(day);
+    i > -1 ? S.newGoal.days.splice(i, 1) : S.newGoal.days.push(day);
+    render();
+}
+
+// ─── Vues ─────────────────────────────────────────────────────────────────────
+
+function renderHome() {
+    return `
+    <div class="card">
+        <div class="header">
+            <h1>📚 Mes Études</h1>
+            <div class="points-badge"><span>🏆</span><span>${totalPoints()}</span></div>
+        </div>
+    </div>
+
+    <div class="btn-grid">
+        <button class="btn btn-green"  onclick="S.view='session'; render()">
+            <span class="btn-icon">✓</span>Session
+        </button>
+        <button class="btn btn-amber"  onclick="S.view='goals'; render()">
+            <span class="btn-icon">🎯</span>Objectifs
+        </button>
+        <button class="btn btn-blue"   onclick="S.view='history'; render()">
+            <span class="btn-icon">📋</span>Historique
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="header" style="margin-bottom:14px">
+            <h2 style="margin:0">Mes Matières</h2>
+            <button class="link-btn" onclick="S.view='manage'; render()">Gérer</button>
+        </div>
+        ${S.subjects.length === 0
+            ? `<div class="empty">Aucune matière.<br>Clique sur "Gérer" pour commencer.</div>`
+            : S.subjects.map(sub => `
+            <div class="subject-card">
+                <div class="subject-card-info">
+                    <span style="font-size:20px">📖</span>
+                    <div>
+                        <div style="font-weight:600;font-size:14px">${sub.name}</div>
+                        <div class="subject-card-sub">${sub.exercises.length} exercice${sub.exercises.length>1?'s':''}</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="subject-card-points">${sub.totalPoints}</div>
+                    <div class="subject-card-pts-label">points</div>
+                </div>
+            </div>`).join('')}
+    </div>`;
+}
+
+function renderManage() {
+    return `
+    <div class="card">
+        <div class="header">
+            <h2 style="margin:0">Gérer les Matières</h2>
+            <button class="close-btn" onclick="S.view='home'; render()">✕</button>
+        </div>
+
+        <h3>Nouvelle matière</h3>
+        <div class="input-row" style="margin-bottom:18px">
+            <input type="text" id="newSubjectInput" placeholder="Nom de la matière" style="flex:1"
+                   onkeypress="if(event.key==='Enter') addSubject()">
+            <button class="btn btn-indigo" style="padding:11px 14px;font-size:20px;flex-direction:row"
+                    onclick="addSubject()">+</button>
+        </div>
+
+        ${S.subjects.map(sub => `
+        <div class="subject-item">
+            <div class="subject-header">
+                <span class="subject-name">${sub.name}</span>
+                <button class="btn btn-red" style="padding:6px 10px;font-size:12px;flex-direction:row"
+                        onclick="delSubject(${sub.id})">🗑️ Supprimer</button>
+            </div>
+
+            ${sub.exercises.map(ex => `
+            <div class="exercise-item">
+                <span style="font-size:13px;color:#374151">${ex.name}</span>
+                <div style="display:flex;gap:10px;align-items:center">
+                    <span class="exercise-pts">${ex.points} pts</span>
+                    <button class="btn-icon-sm" onclick="delExercise(${sub.id},${ex.id})">🗑️</button>
+                </div>
+            </div>`).join('')}
+
+            <div style="margin-top:10px">
+                <div class="input-row">
+                    <input type="text"   id="exName-${sub.id}" placeholder="Nom de l'exercice">
+                    <input type="number" id="exPts-${sub.id}"  placeholder="Pts" min="1">
+                </div>
+                <button class="btn btn-indigo btn-full"
+                        onclick="addExercise(${sub.id})">+ Ajouter l'exercice</button>
+            </div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderSession() {
+    const groups = sessionGroups();
+    const total  = S.sessionExercises.reduce((a, e) => a + e.points, 0);
+
+    return `
+    <div class="card">
+        <div class="header">
+            <h2 style="margin:0">Nouvelle Session</h2>
+            <button class="close-btn" onclick="S.sessionExercises=[]; S.view='home'; render()">✕</button>
+        </div>
+
+        ${groups.length ? `
+        <h3>Exercices effectués</h3>
+        ${groups.map(g => `
+        <div class="selected-item">
+            <div>
+                <div class="selected-name">${g.ex.name}</div>
+                <div class="selected-subject">${subjectName(g.subjectId)}</div>
+            </div>
+            <div class="selected-count">
+                <input type="number" min="1" value="${g.count}"
+                       onchange="changeGroupCount(${g.subjectId},${g.ex.id},parseInt(this.value))">
+                <span style="font-size:12px;color:#6b7280">×${g.ex.points}pts</span>
+                <button class="btn-icon-sm" onclick="removeGroup(${g.subjectId},${g.ex.id})">🗑️</button>
+            </div>
+        </div>`).join('')}
+
+        <div class="total-box">
+            <span class="total-label">Total session</span>
+            <span class="total-value">${total} pts</span>
+        </div>
+        <button class="btn btn-green btn-full" onclick="saveSession()">✓ Valider la Session</button>
+        <div style="margin:16px 0 4px; border-top:1px solid #e5e7eb"></div>
+        ` : ''}
+
+        <h3>Ajouter des exercices</h3>
+        ${S.subjects.length === 0
+            ? `<div class="empty">Aucune matière. Va dans "Gérer" pour en créer.</div>`
+            : S.subjects.map(sub => `
+        <div class="subject-section">
+            <div class="subject-section-title">📖 ${sub.name}</div>
+            ${sub.exercises.length === 0
+                ? `<div style="font-size:13px;color:#9ca3af">Aucun exercice configuré</div>`
+                : sub.exercises.map(ex => `
+            <div class="ex-row">
+                <input type="number" id="qty-${sub.id}-${ex.id}" min="1" value="1">
+                <button class="ex-btn"
+                        onclick="addToSession(${sub.id}, ${JSON.stringify(ex).replace(/"/g,'&quot;')}, parseInt(document.getElementById('qty-${sub.id}-${ex.id}').value)||1)">
+                    <span>${ex.name}</span>
+                    <span class="exercise-pts">+${ex.points}pts</span>
+                </button>
+            </div>`).join('')}
+        </div>`).join('')}
+    </div>`;
+}
+
+function renderHistory() {
+    return `
+    <div class="card">
+        <div class="header">
+            <h2 style="margin:0">Historique</h2>
+            <button class="close-btn" onclick="S.view='home'; render()">✕</button>
+        </div>
+
+        ${S.sessions.length === 0 ? `<div class="empty">Aucune session enregistrée</div>` :
+        S.sessions.map(s => {
+            const editing = S.editingSession === s.id;
+            return `
+            <div class="session-item${editing?' edit-mode':''}">
+                <div class="session-header">
+                    <span class="session-date">${fmtDate(s.date)}</span>
+                    <span class="session-total">${s.totalPoints} pts</span>
+                </div>
+
+                ${editing ? `
+                <div class="edit-hint">✏️ Modifie le nombre d'exercices (0 = supprimer)</div>
+                ${s.exercises.map((ex, i) => `
+                <div class="edit-item">
+                    <div class="edit-item-info">
+                        ${ex.name}
+                        <small>${subjectName(ex.subjectId)} · ${ex.pointsPerExercise} pts/ex</small>
+                    </div>
+                    <input type="number" id="ec-${s.id}-${i}" value="${ex.count}" min="0">
+                </div>`).join('')}
+                <div style="display:flex;gap:8px;margin-top:10px">
+                    <button class="btn btn-green" style="flex:1;padding:10px;font-size:13px;flex-direction:row"
+                            onclick="saveEditedSession(${s.id})">✓ Sauvegarder</button>
+                    <button class="btn btn-gray"  style="flex:1;padding:10px;font-size:13px;flex-direction:row"
+                            onclick="S.editingSession=null;render()">Annuler</button>
+                </div>
+                ` : `
+                ${s.exercises.map(ex => `
+                <div class="session-line">
+                    <span>${ex.count > 1 ? ex.count+'× ' : ''}${ex.name} (${subjectName(ex.subjectId)})</span>
+                    <span style="color:#6366f1">${ex.pointsPerExercise * ex.count} pts</span>
+                </div>`).join('')}
+                <div class="session-actions">
+                    <button class="btn btn-amber" onclick="S.editingSession=${s.id};render()">✏️ Modifier</button>
+                    <button class="btn btn-red"   onclick="delSession(${s.id})">🗑️ Supprimer</button>
+                </div>`}
+            </div>`;
+        }).join('')}
+    </div>`;
+}
+
+function renderGoals() {
+    updateAutoGoals(); // S'assurer que tout est à jour
+
+    const ag    = S.weeklyGoals.automatic;
+    const goals = ag.subjectGoals || [];
+
+    return `
+    <div class="card">
+        <div class="header">
+            <h2 style="margin:0">🎯 Objectifs Hebdo</h2>
+            <button class="close-btn" onclick="S.view='home'; render()">✕</button>
+        </div>
+
+        <h3>Points par matière cette semaine</h3>
+        ${S.subjects.length === 0
+            ? `<div class="empty">Ajoute des matières pour voir les objectifs</div>`
+            : S.subjects.map(sub => {
+                const g = goals.find(g => g.subjectId === sub.id) || { targetPoints: 50, currentPoints: 0 };
+                const pct = Math.min(100, Math.round(g.currentPoints / g.targetPoints * 100));
+                const done = g.currentPoints >= g.targetPoints;
+                return `
+                <div class="goal-item">
+                    <div class="goal-header">
+                        <span class="goal-title">${sub.name}</span>
+                        <span class="goal-badge ${done?'done':'wip'}">
+                            ${done ? '✓ Atteint' : `${g.currentPoints} / ${g.targetPoints}`}
+                        </span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill${done?' done':''}" style="width:${pct}%"></div>
+                    </div>
+                    <div class="goal-target-row">
+                        <span>Objectif :</span>
+                        <input type="number" value="${g.targetPoints}" min="1"
+                               onchange="setGoalTarget(${sub.id}, this.value)">
+                        <span>points</span>
+                    </div>
+                </div>`;
+            }).join('')}
+
+        <div style="margin:20px 0 10px;border-top:1px solid #e5e7eb"></div>
+        <div class="header" style="margin-bottom:10px">
+            <h3 style="margin:0">Mes objectifs perso</h3>
+            <button class="btn btn-indigo" style="padding:7px 12px;font-size:13px;flex-direction:row"
+                    onclick="S.showGoalModal=true; render()">+ Ajouter</button>
+        </div>
+
+        ${S.weeklyGoals.manual.length === 0
+            ? `<div class="empty" style="padding:14px">Clique sur "+ Ajouter" pour créer un objectif</div>`
+            : S.weeklyGoals.manual.map(goal => `
+        <div class="goal-item">
+            <div class="goal-header">
+                <span class="goal-title">${goal.title}</span>
+                <button class="btn-icon-sm" onclick="delManualGoal(${goal.id})">🗑️</button>
+            </div>
+            ${goal.days.map(day => {
+                const done = isDone(goal, day);
+                return `
+                <div class="day-check${done?' done':''}" onclick="toggleDayDone(${goal.id},'${day}')">
+                    <input type="checkbox" ${done?'checked':''} onclick="event.stopPropagation()">
+                    <span class="day-check-label">${day.charAt(0).toUpperCase()+day.slice(1)}</span>
+                    ${done ? '<span style="margin-left:auto">✓</span>' : ''}
+                </div>`;
+            }).join('')}
+        </div>`).join('')}
+    </div>
+
+    ${S.showGoalModal ? `
+    <div class="modal-overlay" onclick="if(event.target===this){S.showGoalModal=false;render()}">
+        <div class="modal">
+            <div class="header" style="margin-bottom:16px">
+                <h3 style="margin:0">Nouvel objectif</h3>
+                <button class="close-btn" onclick="S.showGoalModal=false;S.newGoal={title:'',days:[]};render()">✕</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Titre</label>
+                <input type="text" id="goalTitle" placeholder="Ex: Réviser les maths" value="${S.newGoal.title}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Jours de la semaine</label>
+                <div class="days-grid">
+                    ${DAYS.map(d => `
+                    <button class="day-btn${S.newGoal.days.includes(d)?' on':''}" onclick="toggleDaySelect('${d}')">
+                        ${DAY_SHORT[d]}
+                    </button>`).join('')}
+                </div>
+            </div>
+            <button class="btn btn-indigo btn-full" onclick="addManualGoal()">✓ Créer l'objectif</button>
+        </div>
+    </div>` : ''}`;
+}
+
+// ─── Render ───────────────────────────────────────────────────────────────────
+function render() {
+    const views = { home: renderHome, manage: renderManage, session: renderSession, history: renderHistory, goals: renderGoals };
+    document.getElementById('app').innerHTML = (views[S.view] || renderHome)();
+}
+
+// ─── Service Worker ───────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js')
+        .then(() => console.log('SW enregistré'))
+        .catch(err => console.warn('SW:', err));
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+openDB().then(loadAll).then(render);
+</script>
+</body>
+</html>
