@@ -1,6 +1,6 @@
 # 📚 Suivi Études
 
-Application de suivi de travail scolaire avec système de points.
+Application de suivi de travail scolaire avec système de points. Tout le code est écrit par Claude.
 
 ## Installation sur Android (GitHub Pages)
 
